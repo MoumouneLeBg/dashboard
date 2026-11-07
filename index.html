@@ -23,13 +23,11 @@
   svg.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.5;
     stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
 
-  /* Calendrier */
-  .cal { width: 100%; border-collapse: collapse; margin-top: 14px; }
-  .cal th { font-size: 11px; font-weight: 500; color: #aaa; padding-bottom: 8px; }
-  .cal td { text-align: center; font-size: 15px; padding: 5px 0; color: #333; }
-  .cal td.we { color: #999; }
-  .cal td span { display: inline-block; width: 30px; height: 30px; line-height: 30px; }
-  .cal td.today span { background: #111; color: #fff; border-radius: 7px; font-weight: 600; }
+  /* Grande date */
+  .day-card { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .day-name { font-size: 26px; letter-spacing: 8px; font-weight: 500; }
+  .day-num { font-size: 200px; font-weight: 200; line-height: 1; letter-spacing: -6px; margin: 6px 0; }
+  .day-month { font-size: 22px; color: #999; font-weight: 300; letter-spacing: 1px; }
 
   /* Soleil / vent */
   .sun { display: flex; }
@@ -38,27 +36,29 @@
   .s-val { font-size: 20px; font-weight: 300; margin-top: 6px; }
   .s-lab { font-size: 11px; color: #999; margin-top: 2px; }
 
-  /* Météo */
-  .w-top { display: flex; align-items: center; }
-  .w-top .ic { width: 48px; height: 48px; stroke-width: 1.2; }
-  .w-temp { font-size: 46px; font-weight: 200; margin-left: 12px; line-height: 1; }
-  .w-info { margin-left: 12px; font-size: 13px; color: #888; line-height: 1.5; }
-  .w-city { margin-left: auto; align-self: flex-start; }
-  .w-days { display: flex; margin-top: 18px; }
-  .w-day { flex: 1; text-align: center; font-size: 11px; color: #777; }
-  .w-day .ic { display: block; margin: 7px auto; width: 20px; height: 20px; }
-  .w-day b { font-weight: 500; color: #333; }
+  /* Météo (grande) */
+  .w-card { display: flex; flex-direction: column; justify-content: space-between; flex: 1.3; }
+  .w-head { display: flex; align-items: center; }
+  .w-head .label { margin-left: auto; font-size: 14px; }
+  .w-top { display: flex; align-items: center; justify-content: center; margin-top: 8px; }
+  .w-top .ic { width: 86px; height: 86px; stroke-width: 1.1; }
+  .w-temp { font-size: 104px; font-weight: 200; margin-left: 14px; line-height: 1; letter-spacing: -3px; }
+  .w-info { text-align: center; font-size: 18px; color: #777; margin-top: 8px; line-height: 1.5; }
+  .w-days { display: flex; margin-top: 16px; }
+  .w-day { flex: 1; text-align: center; font-size: 14px; color: #777; }
+  .w-day .ic { display: block; margin: 8px auto; width: 30px; height: 30px; }
+  .w-day b { font-weight: 500; color: #333; font-size: 16px; }
+  .w-day span { display: block; margin-top: 2px; }
 
   /* Horloge */
-  .clock-card { display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .clock-card { display: flex; align-items: center; justify-content: center; padding: 14px; }
   #clock { width: 100%; height: 100%; }
   #clock svg { width: 100%; height: 100%; }
 
-  /* Date */
-  .date-card { text-align: center; padding: 26px 22px; }
-  .d-num { font-size: 78px; font-weight: 200; line-height: 1; letter-spacing: -1px; }
-  .d-day { font-size: 15px; letter-spacing: 7px; margin-top: 10px; font-weight: 500; }
-  .d-time { font-size: 30px; color: #999; font-weight: 300; margin-top: 14px; }
+  /* Heure */
+  .time-card { text-align: center; padding: 24px 22px; }
+  .d-time { font-size: 80px; font-weight: 200; line-height: 1; letter-spacing: -2px; }
+  .d-week { font-size: 13px; color: #999; letter-spacing: 2px; text-transform: uppercase; margin-top: 10px; }
 
   /* Infos */
   .news { background: #111; color: #fff; display: flex; flex-direction: column; }
@@ -70,11 +70,9 @@
   .dot { display: inline-block; width: 5px; height: 5px; border-radius: 3px; background: #444; margin: 0 3px; }
   .dot.on { background: #fff; }
 
-  /* Mode nuit (écran sombre la nuit) */
+  /* Mode nuit */
   body.nuit { background: #000; color: #777; }
   body.nuit .card, body.nuit .news { background: #0c0c0c; box-shadow: none; }
-  body.nuit .cal td { color: #666; }
-  body.nuit .cal td.today span { background: #333; color: #ddd; }
   body.nuit .w-day b, body.nuit .n-title { color: #888; }
 </style>
 </head>
@@ -82,20 +80,23 @@
 <div class="wrap">
 
   <div class="col">
-    <div class="card grow" id="cal"></div>
+    <div class="card day-card grow">
+      <div class="day-name" id="dname">---</div>
+      <div class="day-num" id="dnum">--</div>
+      <div class="day-month" id="dmonth">---</div>
+    </div>
     <div class="card sun" id="sun"></div>
   </div>
 
   <div class="col">
-    <div class="card" id="weather"><div class="label">Météo</div><div class="w-info" style="margin:14px 0 0">Chargement…</div></div>
+    <div class="card w-card" id="weather"><div class="label">Météo</div><div class="w-info">Chargement…</div></div>
     <div class="card clock-card grow"><div id="clock"></div></div>
   </div>
 
   <div class="col">
-    <div class="card date-card">
-      <div class="d-num" id="dnum">--/--</div>
-      <div class="d-day" id="dday">---</div>
+    <div class="card time-card">
       <div class="d-time" id="dtime">--:--</div>
+      <div class="d-week" id="dweek"></div>
     </div>
     <div class="card news grow">
       <div class="label">À la une</div>
@@ -107,16 +108,16 @@
 </div>
 
 <script>
-/* ===== RÉGLAGES : modifie ici ===== */
+/* ===== RÉGLAGES ===== */
 var CONFIG = {
-  ville: 'Paris',
-  lat: 48.8566,
-  lon: 2.3522,
+  ville: 'Agen',
+  lat: 44.2033,
+  lon: 0.6163,
   rss: 'https://www.francetvinfo.fr/titres.rss',
-  nuitDebut: 23,   // heure de passage en mode sombre
-  nuitFin: 7       // heure de retour en mode clair
+  nuitDebut: 23,
+  nuitFin: 7
 };
-/* ================================== */
+/* ==================== */
 
 var JOURS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 var JC = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
@@ -189,25 +190,11 @@ function buildClock() {
 }
 function rot(id, deg) { $(id).setAttribute('transform', 'rotate(' + deg + ' 100 100)'); }
 
-/* ----- Calendrier ----- */
-function renderCal(now) {
-  var y = now.getFullYear(), m = now.getMonth(), today = now.getDate();
-  var offset = (new Date(y, m, 1).getDay() + 6) % 7;
-  var nb = new Date(y, m + 1, 0).getDate();
-  var h = '<div class="label">' + MOIS[m] + ' ' + y + '</div><table class="cal"><tr>';
-  var heads = ['L','M','M','J','V','S','D'], i, d = 1 - offset;
-  for (i = 0; i < 7; i++) h += '<th>' + heads[i] + '</th>';
-  h += '</tr>';
-  while (d <= nb) {
-    h += '<tr>';
-    for (i = 0; i < 7; i++, d++) {
-      if (d < 1 || d > nb) { h += '<td></td>'; continue; }
-      var cls = (d === today ? 'today' : '') + (i >= 5 ? ' we' : '');
-      h += '<td class="' + cls + '"><span>' + d + '</span></td>';
-    }
-    h += '</tr>';
-  }
-  $('cal').innerHTML = h + '</table>';
+function weekNumber(d) {
+  var t = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  t.setDate(t.getDate() + 3 - (t.getDay() + 6) % 7);
+  var w1 = new Date(t.getFullYear(), 0, 4);
+  return 1 + Math.round(((t - w1) / 86400000 - 3 + (w1.getDay() + 6) % 7) / 7);
 }
 
 /* ----- Tic chaque seconde ----- */
@@ -220,33 +207,33 @@ function tick() {
   $('dtime').innerHTML = pad(h) + ':' + pad(mi);
   if (n.getDate() !== lastDay) {
     lastDay = n.getDate();
-    $('dnum').innerHTML = pad(n.getDate()) + '/' + pad(n.getMonth() + 1);
-    $('dday').innerHTML = JOURS[n.getDay()].toUpperCase();
-    renderCal(n);
+    $('dname').innerHTML = JOURS[n.getDay()].toUpperCase();
+    $('dnum').innerHTML = n.getDate();
+    $('dmonth').innerHTML = MOIS[n.getMonth()] + ' ' + n.getFullYear();
+    $('dweek').innerHTML = 'Semaine ' + weekNumber(n);
   }
   var deb = CONFIG.nuitDebut, fin = CONFIG.nuitFin;
   var nuit = deb > fin ? (h >= deb || h < fin) : (h >= deb && h < fin);
   if (nuit) document.body.classList.add('nuit'); else document.body.classList.remove('nuit');
 }
 
-/* ----- Météo (Open-Meteo, gratuit, sans clé) ----- */
+/* ----- Météo (Open-Meteo) ----- */
 function loadWeather() {
   var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + CONFIG.lat + '&longitude=' + CONFIG.lon +
     '&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset' +
-    '&timezone=auto&forecast_days=7';
+    '&timezone=auto&forecast_days=6';
   getJSON(url, function (d) {
     var c = d.current_weather, dl = d.daily;
     var t = meteoType(c.weathercode, c.is_day);
-    var h = '<div class="w-top">' + icon(t) +
-      '<div class="w-temp">' + Math.round(c.temperature) + '°</div>' +
-      '<div class="w-info">' + DESC[t] + '<br>Max ' + Math.round(dl.temperature_2m_max[0]) +
-      '° · Min ' + Math.round(dl.temperature_2m_min[0]) + '°</div>' +
-      '<div class="label w-city">' + CONFIG.ville + '</div></div><div class="w-days">';
-    for (var i = 0; i < dl.time.length; i++) {
+    var h = '<div class="w-head"><span class="label">Météo</span><span class="label">' + CONFIG.ville + '</span></div>' +
+      '<div class="w-top">' + icon(t) + '<div class="w-temp">' + Math.round(c.temperature) + '°</div></div>' +
+      '<div class="w-info">' + DESC[t] + ' · Max ' + Math.round(dl.temperature_2m_max[0]) +
+      '° · Min ' + Math.round(dl.temperature_2m_min[0]) + '°</div><div class="w-days">';
+    for (var i = 1; i < dl.time.length; i++) {
       var p = dl.time[i].split('-');
       var jd = new Date(+p[0], +p[1] - 1, +p[2]).getDay();
-      h += '<div class="w-day">' + (i === 0 ? 'Auj.' : JC[jd]) + icon(meteoType(dl.weathercode[i], 1)) +
-        '<b>' + Math.round(dl.temperature_2m_max[i]) + '°</b> ' + Math.round(dl.temperature_2m_min[i]) + '°</div>';
+      h += '<div class="w-day">' + JC[jd] + icon(meteoType(dl.weathercode[i], 1)) +
+        '<b>' + Math.round(dl.temperature_2m_max[i]) + '°</b><span>' + Math.round(dl.temperature_2m_min[i]) + '°</span></div>';
     }
     $('weather').innerHTML = h + '</div>';
     $('sun').innerHTML =
@@ -254,12 +241,12 @@ function loadWeather() {
       '<div class="s-item">' + icon('sunset') + '<div class="s-val">' + dl.sunset[0].substr(11, 5) + '</div><div class="s-lab">Coucher</div></div>' +
       '<div class="s-item">' + icon('wind') + '<div class="s-val">' + Math.round(c.windspeed) + '</div><div class="s-lab">Vent km/h</div></div>';
   }, function () {
-    $('weather').innerHTML = '<div class="label">Météo</div><div class="w-info" style="margin:14px 0 0">Météo indisponible, nouvel essai bientôt</div>';
+    $('weather').innerHTML = '<div class="label">Météo</div><div class="w-info">Météo indisponible, nouvel essai bientôt</div>';
     setTimeout(loadWeather, 60000);
   });
 }
 
-/* ----- Infos (flux RSS via rss2json) ----- */
+/* ----- Infos (RSS via rss2json) ----- */
 var news = [], idx = 0;
 function decode(t) { var e = document.createElement('textarea'); e.innerHTML = t; return e.value; }
 function ago(str) {
@@ -300,7 +287,7 @@ setInterval(loadWeather, 15 * 60 * 1000);
 loadNews();
 setInterval(loadNews, 15 * 60 * 1000);
 setInterval(showNews, 12000);
-setTimeout(function () { location.reload(); }, 6 * 3600 * 1000); // rechargement toutes les 6 h
+setTimeout(function () { location.reload(); }, 6 * 3600 * 1000);
 </script>
 </body>
 </html>
