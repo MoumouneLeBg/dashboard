@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dashboard">
+<title>Dashboard</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #f2f2f0; color: #111;
+    font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased; overflow: hidden;
+    -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+    transition: background 1s, color 1s; }
+  .wrap { display: flex; height: 100%; padding: 26px 16px; box-sizing: border-box; }
+  .col { flex: 1; display: flex; flex-direction: column; margin: 0 10px; min-width: 0; }
+  .card { background: #fff; border-radius: 22px; padding: 20px 22px; margin-bottom: 20px;
+    box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,.06); transition: background 1s; }
+  .card:last-child { margin-bottom: 0; }
+  .grow { flex: 1; min-height: 0; }
+  .label { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #999; }
+  svg.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.5;
+    stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
+
+  /* Grande date */
+  .day-card { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .day-name { font-size: 26px; letter-spacing: 8px; font-weight: 500; }
+  .day-num { font-size: 200px; font-weight: 200; line-height: 1; letter-spacing: -6px; margin: 6px 0; }
+  .day-month { font-size: 22px; color: #999; font-weight: 300; letter-spacing: 1px; }
+
+  /* Soleil / vent */
+  .sun { display: flex; }
+  .s-item { flex: 1; text-align: center; }
+  .s-item .ic { width: 22px; height: 22px; color: #777; }
+  .s-val { font-size: 20px; font-weight: 300; margin-top: 6px; }
+  .s-lab { font-size: 11px; color: #999; margin-top: 2px; }
+
+  /* Météo */
+  .w-card { display: flex; flex-direction: column; justify-content: space-between; flex: 1.3; }
+  .w-head { display: flex; align-items: center; }
+  .w-head .label { margin-left: auto; font-size: 14px; }
+  .w-top { display: flex; align-items: center; justify-content: center; margin-top: 8px; }
+  .w-top .ic { width: 86px; height: 86px; stroke-width: 1.1; }
+  .w-temp { font-size: 104px; font-weight: 200; margin-left: 14px; line-height: 1; letter-spacing: -3px; }
+  .w-info { text-align: center; font-size: 18px; color: #777; margin-top: 8px; line-height: 1.5; }
+  .w-days { display: flex; margin-top: 16px; }
+  .w-day { flex: 1; text-align: center; font-size: 14px; color: #777; }
+  .w-day .ic { display: block; margin: 8px auto; width: 30px; height: 30px; }
+  .w-day b { font-weight: 500; color: #333; font-size: 16px; }
+  .w-day span { display: block; margin-top: 2px; }
+
+  /* Horloge */
+  .clock-card { display: flex; align-items: center; justify-content: center; padding: 14px; }
+  #clock { width: 100%; height: 100%; }
+  #clock svg { width: 100%; height: 100%; }
+
+  /* Heure */
+  .time-card { text-align: center; padding: 24px 22px; }
+  .d-time { font-size: 80px; font-weight: 200; line-height: 1; letter-spacing: -2px; }
+  .d-week { font-size: 13px; color: #999; letter-spacing: 2px; text-transform: uppercase; margin-top: 10px; }
+
+  /* Infos : liste de titres */
+  .news { display: flex; flex-direction: column; }
+  .n-list { flex: 1; min-height: 0; overflow: hidden; margin-top: 4px; transition: opacity .4s; }
+  .n-item { padding: 12px 0; border-bottom: 1px solid #eee; cursor: pointer; }
+  .n-item:last-child { border-bottom: 0; }
+  .n-t { font-size: 17px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical; overflow: hidden; }
+  .n-m { font-size: 11px; color: #999; margin-top: 4px; }
+  .n-dots { text-align: center; margin-top: 8px; }
+  .dot { display: inline-block; width: 6px; height: 6px; border-radius: 3px; background: #ddd; margin: 0 3px; }
+  .dot.on { background: #111; }
+
+  /* Fenêtre résumé */
+  #modal { position: fixed; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,.45);
+    display: none; align-items: center; justify-content: center; z-index: 10; cursor: pointer; }
+  #modal.open { display: flex; }
+  .m-box { background: #fff; color: #111; border-radius: 24px; width: 760px; max-width: 92%;
+    overflow: hidden; display: block; box-shadow: 0 10px 40px rgba(0,0,0,.3); cursor: default; }
+  .m-imgwrap { height: 150px; overflow: hidden; position: relative; background: #eee; cursor: pointer; }
+  .m-imgwrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .m-imgwrap span { position: absolute; right: 12px; top: 12px; background: rgba(0,0,0,.55); color: #fff;
+    font-size: 12px; padding: 5px 10px; border-radius: 12px; }
+  .m-box.noimg .m-imgwrap { display: none; }
+  .m-content { padding: 26px 32px 14px; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    max-height: calc(86vh - 150px - 60px); }
+  .m-box.noimg .m-content { max-height: calc(86vh - 60px); }
+  .m-title { font-size: 28px; line-height: 1.3; font-weight: 500; }
+  .m-meta { font-size: 13px; color: #999; margin-top: 10px; letter-spacing: 1px; }
+  .m-text { font-size: 22px; line-height: 1.55; color: #333; margin-top: 18px; }
+  .m-close { border: 0; border-top: 1px solid #eee; background: none; font-size: 17px; padding: 18px;
+    color: #111; font-family: inherit; width: 100%; }
+
+  /* Mode nuit */
+  body.nuit { background: #000; color: #777; }
+  body.nuit .card { background: #0c0c0c; box-shadow: none; }
+  body.nuit .w-day b, body.nuit .n-t { color: #888; }
+  body.nuit .n-item { border-color: #1c1c1c; }
+  body.nuit .dot { background: #2a2a2a; }
+  body.nuit .dot.on { background: #888; }
+  body.nuit .m-box { background: #111; color: #bbb; }
+  body.nuit .m-text { color: #888; }
+  body.nuit .m-close { color: #bbb; border-color: #222; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="col">
+    <div class="card day-card grow">
+      <div class="day-name" id="dname">---</div>
+      <div class="day-num" id="dnum">--</div>
+      <div class="day-month" id="dmonth">---</div>
+    </div>
+    <div class="card sun" id="sun"></div>
+  </div>
+
+  <div class="col">
+    <div class="card w-card" id="weather"><div class="label">Météo</div><div class="w-info">Chargement…</div></div>
+    <div class="card clock-card grow"><div id="clock"></div></div>
+  </div>
+
+  <div class="col">
+    <div class="card time-card">
+      <div class="d-time" id="dtime">--:--</div>
+      <div class="d-week" id="dweek"></div>
+    </div>
+    <div class="card news grow" id="ncard">
+      <div class="label">À la une</div>
+      <div class="n-list" id="nlist"><div class="n-item"><div class="n-t">Chargement des infos…</div></div></div>
+      <div class="n-dots" id="ndots"></div>
+    </div>
+  </div>
+
+</div>
+
+<div id="modal">
+  <div class="m-box" id="mbox">
+    <div class="m-imgwrap" id="mimgwrap"><img id="mimg" alt=""><span>Masquer l'image</span></div>
+    <div class="m-content" id="mcontent">
+      <div class="m-title" id="mtitle"></div>
+      <div class="m-meta" id="mmeta"></div>
+      <div class="m-text" id="mtext"></div>
+    </div>
+    <button class="m-close" id="mclose">Fermer</button>
+  </div>
+</div>
+
+<script>
+/* ===== RÉGLAGES ===== */
+var CONFIG = {
+  ville: 'Agen',
+  lat: 44.2033,
+  lon: 0.6163,
+  rss: 'https://www.francetvinfo.fr/titres.rss',
+  infosParPage: 4,       // nombre de titres affichés en même temps
+  infosDefilement: 20,   // secondes avant la page suivante
+  nuitDebut: 23,
+  nuitFin: 7
+};
+/* ==================== */
+
+var JOURS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+var JC = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+var MOIS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+function pad(n) { return (n < 10 ? '0' : '') + n; }
+function $(id) { return document.getElementById(id); }
+
+var ICONS = {
+  sun: '<circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v2M12 20.5v2M4.6 4.6L6 6M18 18l1.4 1.4M1.5 12h2M20.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4"/>',
+  moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+  partly: '<path d="M8 2.5v1.2M2.5 8h1.2M4.1 4.1l.9.9M11.9 4.1l-.9.9"/><path d="M5.2 10.6A3.2 3.2 0 0 1 10.6 6.4"/><path d="M19 13h-1a6 6 0 1 0-6 7h7a3.5 3.5 0 0 0 0-7z"/>',
+  cloud: '<path d="M18 10h-1.3A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>',
+  rain: '<path d="M20 16.6A5 5 0 0 0 18 7h-1.3A8 8 0 1 0 4 15.3"/><path d="M16 13v8M8 13v8M12 15v8"/>',
+  snow: '<path d="M20 17.6A5 5 0 0 0 18 8h-1.3A8 8 0 1 0 4 16.3"/><path d="M8 16h.01M8 20h.01M12 18h.01M12 22h.01M16 16h.01M16 20h.01"/>',
+  storm: '<path d="M19 16.9A5 5 0 0 0 18 7h-1.3a8 8 0 1 0-11.6 9"/><path d="M13 11l-4 6h6l-4 6"/>',
+  fog: '<path d="M3 8h18M5 12h14M3 16h18M7 20h10"/>',
+  sunrise: '<path d="M17 18a5 5 0 0 0-10 0M12 2v7M4.2 10.2l1.4 1.4M1 18h2M21 18h2M18.4 11.6l1.4-1.4M23 22H1M8 6l4-4 4 4"/>',
+  sunset: '<path d="M17 18a5 5 0 0 0-10 0M12 9V2M4.2 10.2l1.4 1.4M1 18h2M21 18h2M18.4 11.6l1.4-1.4M23 22H1M16 5l-4 4-4-4"/>',
+  wind: '<path d="M9.6 4.6A2 2 0 1 1 11 8H2M12.6 19.4A2 2 0 1 0 14 16H2M17.7 7.7A2.5 2.5 0 1 1 19.5 12H2"/>'
+};
+function icon(name) { return '<svg class="ic" viewBox="0 0 24 24">' + ICONS[name] + '</svg>'; }
+
+function meteoType(code, isDay) {
+  if (code === 0) return isDay === 0 ? 'moon' : 'sun';
+  if (code <= 2) return 'partly';
+  if (code === 3) return 'cloud';
+  if (code === 45 || code === 48) return 'fog';
+  if (code >= 95) return 'storm';
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'snow';
+  return 'rain';
+}
+var DESC = { sun: 'Ensoleillé', moon: 'Dégagé', partly: 'Éclaircies', cloud: 'Couvert',
+  fog: 'Brouillard', rain: 'Pluie', snow: 'Neige', storm: 'Orage' };
+
+function getJSON(url, ok, ko) {
+  var x = new XMLHttpRequest();
+  x.open('GET', url, true);
+  x.timeout = 15000;
+  x.onload = function () {
+    if (x.status >= 200 && x.status < 300) {
+      try { ok(JSON.parse(x.responseText)); } catch (e) { if (ko) ko(); }
+    } else if (ko) ko();
+  };
+  x.onerror = x.ontimeout = function () { if (ko) ko(); };
+  x.send();
+}
+
+/* ----- Horloge analogique ----- */
+function buildClock() {
+  var s = '<circle cx="100" cy="100" r="94" fill="none" stroke="currentColor" stroke-width="2"/>';
+  var i, a;
+  for (i = 0; i < 60; i++) {
+    if (i % 5 === 0) continue;
+    a = i * 6 * Math.PI / 180;
+    s += '<line x1="' + (100 + 86 * Math.sin(a)) + '" y1="' + (100 - 86 * Math.cos(a)) +
+         '" x2="' + (100 + 90 * Math.sin(a)) + '" y2="' + (100 - 90 * Math.cos(a)) +
+         '" stroke="currentColor" stroke-width="1" opacity=".4"/>';
+  }
+  for (i = 1; i <= 12; i++) {
+    a = i * 30 * Math.PI / 180;
+    s += '<text x="' + (100 + 74 * Math.sin(a)) + '" y="' + (100 - 74 * Math.cos(a) + 6) +
+         '" text-anchor="middle" font-size="17" font-weight="300" fill="currentColor">' + i + '</text>';
+  }
+  s += '<line id="hh" x1="100" y1="100" x2="100" y2="56" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>';
+  s += '<line id="mm" x1="100" y1="100" x2="100" y2="32" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>';
+  s += '<line id="ss" x1="100" y1="114" x2="100" y2="26" stroke="#999" stroke-width="1.2" stroke-linecap="round"/>';
+  s += '<circle cx="100" cy="100" r="4.5" fill="currentColor"/>';
+  $('clock').innerHTML = '<svg viewBox="0 0 200 200">' + s + '</svg>';
+}
+function rot(id, deg) { $(id).setAttribute('transform', 'rotate(' + deg + ' 100 100)'); }
+
+function weekNumber(d) {
+  var t = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  t.setDate(t.getDate() + 3 - (t.getDay() + 6) % 7);
+  var w1 = new Date(t.getFullYear(), 0, 4);
+  return 1 + Math.round(((t - w1) / 86400000 - 3 + (w1.getDay() + 6) % 7) / 7);
+}
+
+/* ----- Tic chaque seconde ----- */
+var lastDay = -1;
+function tick() {
+  var n = new Date(), h = n.getHours(), mi = n.getMinutes(), s = n.getSeconds();
+  rot('hh', (h % 12) * 30 + mi * 0.5);
+  rot('mm', mi * 6 + s * 0.1);
+  rot('ss', s * 6);
+  $('dtime').innerHTML = pad(h) + ':' + pad(mi);
+  if (n.getDate() !== lastDay) {
+    lastDay = n.getDate();
+    $('dname').innerHTML = JOURS[n.getDay()].toUpperCase();
+    $('dnum').innerHTML = n.getDate();
+    $('dmonth').innerHTML = MOIS[n.getMonth()] + ' ' + n.getFullYear();
+    $('dweek').innerHTML = 'Semaine ' + weekNumber(n);
+  }
+  var deb = CONFIG.nuitDebut, fin = CONFIG.nuitFin;
+  var nuit = deb > fin ? (h >= deb || h < fin) : (h >= deb && h < fin);
+  if (nuit) document.body.classList.add('nuit'); else document.body.classList.remove('nuit');
+}
+
+/* ----- Météo (Open-Meteo) ----- */
+function loadWeather() {
+  var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + CONFIG.lat + '&longitude=' + CONFIG.lon +
+    '&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset' +
+    '&timezone=auto&forecast_days=6';
+  getJSON(url, function (d) {
+    var c = d.current_weather, dl = d.daily;
+    var t = meteoType(c.weathercode, c.is_day);
+    var h = '<div class="w-head"><span class="label">Météo</span><span class="label">' + CONFIG.ville + '</span></div>' +
+      '<div class="w-top">' + icon(t) + '<div class="w-temp">' + Math.round(c.temperature) + '°</div></div>' +
+      '<div class="w-info">' + DESC[t] + ' · Max ' + Math.round(dl.temperature_2m_max[0]) +
+      '° · Min ' + Math.round(dl.temperature_2m_min[0]) + '°</div><div class="w-days">';
+    for (var i = 1; i < dl.time.length; i++) {
+      var p = dl.time[i].split('-');
+      var jd = new Date(+p[0], +p[1] - 1, +p[2]).getDay();
+      h += '<div class="w-day">' + JC[jd] + icon(meteoType(dl.weathercode[i], 1)) +
+        '<b>' + Math.round(dl.temperature_2m_max[i]) + '°</b><span>' + Math.round(dl.temperature_2m_min[i]) + '°</span></div>';
+    }
+    $('weather').innerHTML = h + '</div>';
+    $('sun').innerHTML =
+      '<div class="s-item">' + icon('sunrise') + '<div class="s-val">' + dl.sunrise[0].substr(11, 5) + '</div><div class="s-lab">Lever</div></div>' +
+      '<div class="s-item">' + icon('sunset') + '<div class="s-val">' + dl.sunset[0].substr(11, 5) + '</div><div class="s-lab">Coucher</div></div>' +
+      '<div class="s-item">' + icon('wind') + '<div class="s-val">' + Math.round(c.windspeed) + '</div><div class="s-lab">Vent km/h</div></div>';
+  }, function () {
+    $('weather').innerHTML = '<div class="label">Météo</div><div class="w-info">Météo indisponible, nouvel essai bientôt</div>';
+    setTimeout(loadWeather, 60000);
+  });
+}
+
+/* ----- Infos ----- */
+var news = [], page = 0, modalOpen = false, lastSwipe = 0, rotTimer = null, closeTimer = null;
+
+function textOf(html) {
+  try {
+    var doc = new DOMParser().parseFromString(html || '', 'text/html');
+    return (doc.body.textContent || '').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+  } catch (e) { return ''; }
+}
+function ago(str) {
+  var d = new Date((str || '').replace(' ', 'T') + 'Z');
+  var min = Math.round((Date.now() - d.getTime()) / 60000);
+  if (isNaN(min)) return '';
+  if (min < 60) return 'il y a ' + Math.max(min, 1) + ' min';
+  if (min < 1440) return 'il y a ' + Math.round(min / 60) + ' h';
+  return 'il y a ' + Math.round(min / 1440) + ' j';
+}
+function nbPages() { return Math.max(1, Math.ceil(news.length / CONFIG.infosParPage)); }
+
+function renderNews() {
+  var L = $('nlist');
+  L.style.opacity = 0;
+  setTimeout(function () {
+    var start = page * CONFIG.infosParPage, end = Math.min(start + CONFIG.infosParPage, news.length), h = '', i;
+    for (i = start; i < end; i++) h += '<div class="n-item" data-i="' + i + '"><div class="n-t"></div><div class="n-m"></div></div>';
+    L.innerHTML = h;
+    var items = L.childNodes;
+    for (i = 0; i < items.length; i++) {
+      items[i].firstChild.textContent = news[start + i]._t;
+      items[i].lastChild.textContent = ago(news[start + i].pubDate);
+    }
+    L.style.opacity = 1;
+  }, 400);
+  var dots = '';
+  for (var p = 0; p < nbPages(); p++) dots += '<span class="dot' + (p === page ? ' on' : '') + '"></span>';
+  $('ndots').innerHTML = dots;
+}
+function goPage(d) {
+  if (!news.length) return;
+  page = (page + d + nbPages()) % nbPages();
+  renderNews();
+}
+function restartRotation() {
+  if (rotTimer) clearInterval(rotTimer);
+  rotTimer = setInterval(function () { if (!modalOpen) goPage(1); }, CONFIG.infosDefilement * 1000);
+}
+
+function loadNews() {
+  getJSON('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(CONFIG.rss), function (d) {
+    if (d.status !== 'ok' || !d.items || !d.items.length) return;
+    news = d.items;
+    for (var i = 0; i < news.length; i++) {
+      news[i]._t = textOf(news[i].title);
+      news[i]._d = textOf(news[i].description || news[i].content);
+    }
+    if (page >= nbPages()) page = 0;
+    renderNews();
+  }, function () {
+    if (!news.length) $('nlist').innerHTML = '<div class="n-item"><div class="n-t">Infos indisponibles pour le moment</div></div>';
+  });
+}
+
+/* Glisser pour changer de page */
+var tx = null, ty = 0;
+$('ncard').addEventListener('touchstart', function (e) {
+  tx = e.touches[0].clientX; ty = e.touches[0].clientY;
+}, false);
+$('ncard').addEventListener('touchend', function (e) {
+  if (tx === null) return;
+  var dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+  tx = null;
+  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) { lastSwipe = Date.now(); goPage(dx < 0 ? 1 : -1); restartRotation(); }
+  else if (Math.abs(dy) > 50) { lastSwipe = Date.now(); goPage(dy < 0 ? 1 : -1); restartRotation(); }
+}, false);
+
+/* Toucher un titre pour ouvrir le résumé */
+$('nlist').addEventListener('click', function (e) {
+  if (Date.now() - lastSwipe < 500) return;
+  var el = e.target;
+  while (el && el !== this && !(el.getAttribute && el.getAttribute('data-i'))) el = el.parentNode;
+  if (el && el !== this) openModal(+el.getAttribute('data-i'));
+}, false);
+
+function openModal(i) {
+  var it = news[i]; if (!it) return;
+  var img = it.thumbnail || '';
+  if (!img && it.enclosure && it.enclosure.link && (!it.enclosure.type || it.enclosure.type.indexOf('image') === 0)) img = it.enclosure.link;
+  var im = $('mimg'), box = $('mbox');
+  if (img) { box.className = 'm-box'; im.onerror = function () { box.className = 'm-box noimg'; }; im.src = img; }
+  else box.className = 'm-box noimg';
+  $('mtitle').textContent = it._t;
+  $('mmeta').textContent = ago(it.pubDate).toUpperCase();
+  $('mtext').textContent = (it._d && it._d !== it._t) ? it._d : 'Pas de résumé disponible pour cet article.';
+  $('mcontent').scrollTop = 0;
+  $('modal').className = 'open';
+  modalOpen = true;
+  if (closeTimer) clearTimeout(closeTimer);
+  closeTimer = setTimeout(closeModal, 90000); // se ferme seul après 1 min 30
+}
+function closeModal() {
+  $('modal').className = '';
+  modalOpen = false;
+  restartRotation();
+}
+$('mimgwrap').addEventListener('click', function () { $('mbox').className = 'm-box noimg'; }, false);
+$('modal').addEventListener('click', function (e) {
+  if (e.target === this || e.target.id === 'mclose') closeModal();
+}, false);
+
+/* Empêche la page de "rebondir" quand on glisse (sauf dans le résumé) */
+document.addEventListener('touchmove', function (e) {
+  var el = e.target;
+  while (el && el.id !== 'mcontent') el = el.parentNode;
+  if (!el) e.preventDefault();
+}, false);
+
+/* ----- Démarrage ----- */
+buildClock();
+tick();
+setInterval(tick, 1000);
+loadWeather();
+setInterval(loadWeather, 15 * 60 * 1000);
+loadNews();
+setInterval(loadNews, 15 * 60 * 1000);
+restartRotation();
+setTimeout(function () { if (!modalOpen) location.reload(); }, 6 * 3600 * 1000);
+</script>
+</body>
+</html>
